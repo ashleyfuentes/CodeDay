@@ -19,7 +19,7 @@ public static void main(String[] args) {
 			//Integer[0] = cards seen, Integer[1] = cards currently visible
 		
 		//Starting card numbers (deck, hand, prizes)
-		int[] cardcounts = {47,1,6};
+		int[] cardcounts = {47,7,6};
 		
 		String input = "egg";
 		hand.add(input);
@@ -27,101 +27,144 @@ public static void main(String[] args) {
 		discard.add(input);
 		input = "Professor Juniper";
 		field.add(input);
-		cardcounts = returnCardToHand(hand, field, cardcounts, input);
 		cardcounts = shuffleHandToDeck(hand, deck, cardcounts);
 		input = "Lysandre's Trump Card";
-		cardcounts[1] = retrieve(hand, discard, cardcounts, input);
+		cardcounts = takePrize(cardcounts);
 		System.out.println(cardcounts[0] + " cards in deck:" + deck);
 		System.out.println("cards in discard:" + discard);
 		System.out.println(cardcounts[1] + " card(s) in hand:" + hand);
 		System.out.println(cardcounts[2] + " prize cards remaining");
+		System.out.println("cards in play:" + field);
 	}
 	
+
 	//Discard methods and functions
-	public static int[] discardFromDeck(Set deck, Set discard, int[] count, String input, Map<String, int[]> known){
-		if(deck.contains(input)){
-			discard.add(deck.remove(input));
+	public static int[] discardFromDeck(Set deck, Set discard, int[] count, String input, Map<String, int[]> known, Set unknown){
+		deck.remove(input);
+		discard.add(input);
+		//Removes the current card from deck if it was known to be there and adds it to the discard pile
+		if (known.get(input)[1]==known.get(input)[0]){
+			known.put(input, known.get(input))[0] ++;
+			known.put(input, known.get(input))[1] ++;
+			unknown.remove(input);
 		}
 		else{
-			discard.add(input);
-			known.put(input, known.get(input))[0] ++;
+			known.put(input, known.get(input))[1] ++;
 		}
+		//Adds one to the visible number of the card, and one to the total number seen if seen already equals visible
+
 		count[0]--;
+		//Reduces deck size by 1.
 		return count;
 	}
 	
-	public static int[] discardFromHand(Set hand, Set discard, int[] count, String input){
+	public static int[] discardFromHand(Set hand, Set discard, int[] count, String input, Map<String, int[]> known, Set unknown){
 		discard.add(input);
 		hand.remove(input);
+		//Removes card from hand if it was known to be there and adds it to the discard pile
+		if (known.get(input)[1]==known.get(input)[0]){
+			known.put(input, known.get(input))[0] ++;
+			known.put(input, known.get(input))[1] ++;
+			unknown.remove(input);
+		}
+		else{
+			known.put(input, known.get(input))[1] ++;
+		}
+		//Adds one to the total number seen of the card and the number currently visible
 		count[1]--;
+		//Reduces the handsize by 1
 		return count;
 	}
 	
 	public static void discardFromField(Set discard, Set field, String input){
 		field.remove(input);
 		discard.add(input);
+		//Removes card from field and adds it to the discard pile
 	}
 	
 	//Adding to hand methods and functions
-	public static void drawCard(Set deck, Set hand, int[]count){
-		deck.clear();
+	public static void drawCard(Set deck, Set hand, int[]count, Set unknown){
+		while(deck.iterator().hasNext()){
+			Object element = deck.iterator().next();
+			unknown.add(element);
+			deck.remove(element);
+		}
+		//We don't know if cards we thought were in the deck are now in the player's hand thus we need to clear known deck cards and make them unknown
 		count[0]--;
 		count[1]++;
-	}
+		//Increases hand size by one and reduces deck size by the same amount
+		}
 	
-	public static int[] returnCardToHand(Set hand, Set field, int[]count, String input){
+	public static int[] returnCardToHand(Set hand, Set field, int[]count, String input, Map<String, int[]> known){
 		hand.add(input);
 		field.remove(input);
+		//Removes card from field and places it in hand
+		known.put(input, known.get(input))[1] --;
+		//Reduces the number of visible copies of this card by 1
 		count[1]++;
+		//Increases hand size by one
 		return count;
 	}
 	
-	public static int[] takePrize(Set hand, int[]count, Set unknown, String input){
-		hand.add(input);
-		unknown.remove(input);
+	public static int[] takePrize(int[]count){
 		count[2]--;
+		count[1]++;
+		//Reduces number of prize cards by 1 and increases hand size by one
 		return count;
 	}
 	
-	public static int retrieve(Set hand, Set discard, int[] count, String input){
+	public static int retrieve(Set hand, Set discard, int[] count, String input, Map<String, int[]> known){
 		hand.add(input);
 		discard.remove(input);
+		//Removes card from discard pile and adds it to hand
+		known.put(input, known.get(input))[1] --;
+		//Reduces the number of visible copies of this card by 1
 		count[1]++;
+		//Increases hand size by 1
 		return count[1];
 	}
 	
+	
 	//Shuffling to deck methods and functions
 	public static int[] shuffleHandCardToDeck(Set hand, Set deck, int[] count, String input){
-			deck.add(input);
-			hand.remove(input);
-			count[1]--;
-			count[0]++;
-					
+		deck.add(input);
+		hand.remove(input);
+		//Removes card from hand if known and adds it to deck
+		count[1]--;
+		count[0]++;
+		//Reduces hand size by one and increases deck size by one
+				
 		return count;
 	}
 	
 	public static int[] shuffleHandToDeck(Set hand, Set deck, int[] count){
-		while (count[1]>0){
+		while (hand.iterator().hasNext()){
 			Object element = hand.iterator().next();
 			count = shuffleHandCardToDeck(hand, deck, count, element.toString());
 		}
+		//Shuffles each card individually by iterating over them one by one
 		return count;
 	}
 	
-	public static int[] shuffleGraveyardToDeck(Set discard, Set deck, int[] count){
-		while (discard.size()>0){
+	public static int[] shuffleGraveyardToDeck(Set discard, Set deck, int[] count, Map<String, int[]> known){
+		while (discard.iterator().hasNext()){
 			Object element = discard.iterator().next();
 			if (element.toString()!="Lysandre's Trump Card"){
-					count = shuffleDiscardToDeck(discard, deck, count, element.toString());
+					count = shuffleDiscardToDeck(discard, deck, count, element.toString(), known);
 			}
+			//Iterates over each card in discard pile and shuffles it into the deck if it is not Lysandre's trump card.
 		}
 		return count;
 	}
 	
-	public static int[] shuffleDiscardToDeck(Set discard, Set deck, int[] count, String input){
-					deck.add(input);
-					discard.remove(input);
-					count[0]++;
+	public static int[] shuffleDiscardToDeck(Set discard, Set deck, int[] count, String input, Map<String, int[]> known){
+		deck.add(input);
+		discard.remove(input);
+		//Removes card from discard pile and adds it to deck
+		known.put(input, known.get(input))[1] --;
+		//Reduces the number of visible copies of this card by 1
+		count[0]++;
+		//Increases deck size by one
 		return count;
 	}
 	
@@ -129,6 +172,26 @@ public static void main(String[] args) {
 		deck.add(input);
 		field.remove(input);
 		count[0]++;
+		return count;
+	}
+	
+	
+	//Playing to field methods and functions
+	public static int[] playCard(Set field, Set hand, int[]count, String input, Map<String, int[]> known, Set unknown){
+		field.add(input);
+		hand.remove(input);
+		//Removes card from hand and adds it to field
+		if (known.get(input)[1]==known.get(input)[0]){
+			known.put(input, known.get(input))[0] ++;
+			known.put(input, known.get(input))[1] ++;
+			unknown.remove(input);
+		}
+		else{
+			known.put(input, known.get(input))[1] ++;
+		}
+		//Adds one to the total number seen of the card and the number currently visible
+		count[1]--;
+		//Reduces hand size by one
 		return count;
 	}
 
