@@ -1,0 +1,135 @@
+import java.util.Hashtable;
+import java.util.List;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
+
+public class Structures {
+
+public static void main(String[] args) {
+	
+		//Create data structures
+		Set<String> discard = new HashSet<String>();
+		Set<String> deck = new HashSet<String>();
+		Set<String> field = new HashSet<String>();
+		Set<String> hand = new HashSet<String>();
+		Set<String> unknown = new HashSet<String>();
+		Map<String, int[]> collection = new Hashtable<String, int[]>();
+			//Integer[0] = cards seen, Integer[1] = cards currently visible
+		
+		//Starting card numbers
+		int cardsindeck = 47;
+		int cardsinhand = 7;
+		int prizes = 6;
+		
+		String input = "egg";
+		hand.add(input);
+		input = "Lysander's Trump Card";
+		discard.add(input);
+		input = "Professor Juniper";
+		field.add(input);
+		hand = returnCardToHand(hand, field, cardsinhand, input);
+		deck = shuffleHandToDeck(hand, deck, cardsinhand, cardsindeck);
+		input = "Lysandre's Trump Card";
+		cardsinhand = retrieve(hand, discard, cardsinhand, input);
+		System.out.println(cardsindeck + " cards in deck:" + deck);
+		System.out.println("cards in discard:" + discard);
+		System.out.println("cards in hand:" + hand);
+	}
+
+	public static void revealcard(Set unknown, Set destination, Object card, String input, Set origin, Map<String, Integer> collection){
+		card = origin.remove(input);
+		if (collection.get(input)<5){
+			collection.put(input, collection.get(input)+1);
+			unknown.remove(card);
+		}
+	}
+	
+	//Discard methods and functions
+	public static int discardFromDeck(Set deck, Set discard, int decksize, String input, Map<String, int[]> known){
+		if(deck.contains(input)){
+			discard.add(deck.remove(input));
+		}
+		else{
+			discard.add(input);
+			known.put(input, input)[0] ++;
+		}
+		decksize --;
+		return decksize;
+	}
+	
+	public static int discardFromHand(Set hand, Set discard, int handsize, String input){
+		discard.add(input);
+		if (hand.contains(input)){
+			hand.remove(input);
+		}
+		handsize --;
+		return handsize;
+	}
+	
+	public static Set<String> discardFromField(Set discard, Set field, String input){
+		field.remove(input);
+		discard.add(input);
+		return discard;
+	}
+	
+	//Adding to hand methods and functions
+	public static void drawCard(Set deck, Set hand, int decksize, int handsize){
+		handsize++;
+		decksize--;
+	}
+	
+	public static Set<String> returnCardToHand(Set hand, Set field, int handsize, String input){
+		hand.add(input);
+		field.remove(input);
+		handsize ++;
+		return hand;
+	}
+	
+	public static int takePrize(Set hand, int prizes, Set unknown, String input){
+		hand.add(input);
+		unknown.remove(input);
+		prizes --;
+		return prizes;
+	}
+	
+	public static int retrieve(Set hand, Set discard, int handsize, String input){
+		hand.add(input);
+		discard.remove(input);
+		handsize ++;
+		return handsize;
+	}
+	
+	//Shuffling to deck methods and functions
+	public static Set shuffleHandToDeck(Set hand, Set deck, int handsize, int decksize){
+		while (handsize>0){
+			Object element = hand.iterator().next();
+			deck.add(element);
+			hand.remove(element);
+			handsize --;
+			decksize ++;
+		}
+		return deck;
+	}
+	
+	public static Set shuffleDiscardToDeck(Set discard, Set deck, int decksize){
+		while (discard.size()>0){
+			Object element = discard.iterator().next();
+			if (element.toString()!="Lysandre's Trump Card"){
+					deck.add(element);
+					discard.remove(element);
+					decksize++;
+			}
+		}
+		return deck;
+	}
+	
+	public static int shuffleCardIntoDeck(Set field, Set deck, int decksize, int handsize, String input){
+		deck.add(input);
+		field.remove(input);
+		decksize ++;
+		return decksize;
+	}
+
+}
