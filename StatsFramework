@@ -1,0 +1,49 @@
+import java.applet.*;
+import java.awt.*;
+import java.awt.event.*;
+
+public class moarmath extends Applet implements ActionListener
+{
+	//declare variables
+	Image logo; //declare an Image object
+	int needed, total;
+	double perChance;
+
+	//construct components
+	Label neededLabel = new Label("Enter the number of needed cards left in the deck: ");
+		TextField neededField = new TextField(10);
+	Label totalLabel = new Label("Enter the total number of cards left in the deck: ");
+		TextField totalField = new TextField(10);
+	Button calcButton = new Button("Calculate");
+	Label outputLabel = new Label("Calculate percentage");
+
+		public void init()
+		{
+			setForeground(Color.red);
+			add(neededLabel);
+			add(neededField);
+			add(totalLabel);
+			add(totalField);
+			add(calcButton);
+			calcButton.addActionListener(this);
+			add(outputLabel);
+			logo = getImage(getDocumentBase(), "logo.gif");
+		}
+
+		public void actionPerformed(ActionEvent e)
+		{
+
+			needed = Integer.parseInt(neededField.getText());
+			total = Integer.parseInt(totalField.getText());
+			double convertedNeeded = needed/1.0;
+			double convertedTotal = total/1.0;
+			perChance = (convertedNeeded/convertedTotal)*100;
+			outputLabel.setText("The percent chance that you will get this card is " + Math.round(perChance) + ".");
+		}
+
+		public void paint(Graphics g)
+		{
+			g.drawImage(logo,125,160,this);
+		}
+}
+
